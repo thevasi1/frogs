@@ -13,11 +13,20 @@ struct StackNode
     struct StackNode *next;
 };
 
-struct StackNode *newNode(char *data)
+//TODO: delete the root argument here and wherever we pass it
+struct StackNode *newNode(char *data, struct StackNode **root)
 {
     struct StackNode *stackNode = (struct StackNode *)malloc(sizeof(struct StackNode));
-    stackNode->data = data;
+
+    int charSize = strlen(data);
+    char *newData;
+
+    newData = (char *)malloc(charSize * sizeof(char));
+    strncpy(newData, data, sizeof(data));
+
+    stackNode->data = newData;
     stackNode->next = NULL;
+    
     return stackNode;
 }
 
@@ -28,9 +37,7 @@ int isEmpty(struct StackNode *root)
 
 void push(struct StackNode **root, char *data)
 {
-    printf("\n we work with %d\n", root);
-    printf("we point at %d\n", (*root)->next);
-    struct StackNode *stackNode = newNode(data);
+    struct StackNode *stackNode = newNode(data, root);
     stackNode->next = *root;
     printf("we will point from %d\n", stackNode);
     printf("\nfrogs before push are: %s \n", (*root)->data);
@@ -49,9 +56,9 @@ char *pop(struct StackNode **root)
     struct StackNode *temp = *root;
     *root = (*root)->next;
     char *popped = temp->data;
-    free(temp);
 
     printf("%s popped from stack\n", popped);
+    free(temp);
     return popped;
 }
 
@@ -81,7 +88,7 @@ int canRightJump(char *frogs, int frogIndex)
     return frogs[frogIndex] == RIGHT_FROG && behindFrog == EMPTY_SPACE;
 }
 
-int canLeftDoubleJump(char *frogs, int frogIndex)
+canLeftDoubleJump(char *frogs, int frogIndex)
 {
     int frontFrogIndex = frogIndex + 2;
     char frontFrog = frogs[frontFrogIndex];
@@ -97,12 +104,6 @@ int canRightDoubleJump(char *frogs, int frogIndex)
     return frogs[frogIndex] == RIGHT_FROG && behindFrog == EMPTY_SPACE;
 }
 
-void doJump(char *frogs, int frogIndex, int *emptyIndex)
-{
-    swap(&frogs[frogIndex], &frogs[*emptyIndex]);
-    *emptyIndex = frogIndex;
-}
-
 void swap(char *a, char *b)
 {
     char temp = *a;
@@ -112,8 +113,7 @@ void swap(char *a, char *b)
 
 void rec(struct StackNode** root, char *frogs, int *emptyIndex)
 {
-    top(*root);
-    if (!strcmp(frogs, "11_00")){
+    if (!strcmp(frogs, "111_000")){
         return;
     }
     if(canLeftJump(frogs, *emptyIndex - 1))
@@ -148,7 +148,36 @@ void rec(struct StackNode** root, char *frogs, int *emptyIndex)
     //     pop(&root);
     // }
 
-    return;
+    if(canLeftJump(top(*root), *emptyIndex - 1))
+    {
+        doJump(frogs, *emptyIndex - 1, emptyIndex);
+        push(root, frogs);
+        rec(root, frogs, emptyIndex);
+        pop(root);
+    }
+    if(canRightJump(frogs, *emptyIndex + 1))
+    {
+        doJump(frogs, *emptyIndex + 1, emptyIndex);
+        push(root, frogs);
+        rec(root, frogs, emptyIndex);
+        pop(root);
+    }
+    // if(canLeftDoubleJump)
+    // {
+    //     doJump();
+    //     push();
+    //     rec();
+    //     pop();
+    // }
+    // if(canRightDoubleJump)
+    // {
+    //     doJump();
+    //     push();
+    //     rec();
+    //     pop();
+    // }
+
+    // pop();
 }
 
 int main()
@@ -156,7 +185,6 @@ int main()
     struct StackNode* root = NULL;
     int frogsTeam = 2;
     // scanf("%d", &frogsTeam);
-    printf("num of frogs: %d\n", frogsTeam);
 
     char frogs[frogsTeam * 2 + 1];
     for (int i = 0; i < frogsTeam; ++i)
@@ -170,14 +198,12 @@ int main()
     }
     frogs[frogsTeam * 2 + 1] = '\0';
 
-    // printf("frogs 1 : %s\n", frogs);
     int emptyIndex = frogsTeam;
 
-
-    printf("\n iniital %d %d\n", root, &root);
+    push(&root, frogs);
     rec(&root, frogs, &emptyIndex);
     while(top(root) != NULL) {
-        pop(root);
+        pop(&root);
     }
 
     return 0;
