@@ -24,7 +24,7 @@ struct StackNode *newNode(char *data)
 
     stackNode->data = newData;
     stackNode->next = NULL;
-    
+
     return stackNode;
 }
 
@@ -64,90 +64,64 @@ char *top(struct StackNode *root)
     return root->data;
 }
 
-int canJump (char *frogs, int frogIndex, int jump, char correctType) {
+int canJump(char *frogs, int frogIndex, int jump, char correctType)
+{
     int jumpEndIndex = frogIndex + jump;
     char jumpEnd = frogs[jumpEndIndex];
 
     return frogs[frogIndex] == correctType && jumpEnd == EMPTY_SPACE;
 }
 
-void swap(char *a, char *b)
-{
-    char temp = *a;
-    *a = *b;
-    *b = temp;
-}
-
 void doJump(char *frogs, int frogIndex, int *emptyIndex)
 {
-    swap(&frogs[frogIndex], &frogs[*emptyIndex]);
+    frogs[*emptyIndex] = frogs[frogIndex];
+    frogs[frogIndex] = EMPTY_SPACE;
     *emptyIndex = frogIndex;
 }
 
-void rec(struct StackNode** root, char *frogs, int emptyIndex, char *winCondition)
+void undoJump(struct StackNode **root, int *emptyIndex, int jump)
 {
-    if (!strcmp(top(*root), winCondition)){
-        return;
-    }
+    pop(root);
+    *emptyIndex += jump;
+}
 
-    if(canJump(top(*root), emptyIndex - 1, 1, LEFT_FROG))
+void rec(struct StackNode **root, char *frogs, int emptyIndex, char *winCondition)
+{
+    if (!strcmp(top(*root), winCondition))
     {
-        strcpy(frogs, top(*root));
-        doJump(frogs, emptyIndex - 1, &emptyIndex);
-        push(root, frogs);
-        rec(root, frogs, emptyIndex, winCondition);
-
-    if (!strcmp(top(*root), winCondition)){
         return;
     }
-
-        pop(root);
-        ++emptyIndex;
-    }
-    if(canJump(top(*root), emptyIndex + 1, -1, RIGHT_FROG))
+    int jump = 0;
+    for (int i = 0; i < 5; ++i)
     {
-        strcpy(frogs, top(*root));
-        doJump(frogs, emptyIndex + 1, &emptyIndex);
-        push(root, frogs);
-        rec(root, frogs, emptyIndex, winCondition);
+        if (i == 2)
+        {
+            continue;
+        }
 
-    if (!strcmp(top(*root), winCondition)){
-        return;
-    }
-        pop(root);
-        --emptyIndex;
-    }
-    if(canJump(top(*root), emptyIndex - 2, 2, LEFT_FROG))
-    {
-        strcpy(frogs, top(*root));
-        doJump(frogs, emptyIndex - 2, &emptyIndex);
-        push(root, frogs);
-        rec(root, frogs, emptyIndex, winCondition);
+        jump = i - 2;
+        int jumpStart = emptyIndex - jump;
+        int typeFrog = jump > 0 ? LEFT_FROG : RIGHT_FROG;
 
-    if (!strcmp(top(*root), winCondition)){
-        return;
-    }
-        pop(root);
-        emptyIndex+=2;
-    }
-    if(canJump(top(*root), emptyIndex + 2, -2, RIGHT_FROG))
-    {
-        strcpy(frogs, top(*root));
-        doJump(frogs, emptyIndex + 2, &emptyIndex);
-        push(root, frogs);
-        rec(root, frogs, emptyIndex, winCondition);
+        if (canJump(top(*root), jumpStart, jump, typeFrog))
+        {
+            strcpy(frogs, top(*root));
+            doJump(frogs, jumpStart, &emptyIndex);
+            push(root, frogs);
+            rec(root, frogs, emptyIndex, winCondition);
 
-    if (!strcmp(top(*root), winCondition)){
-        return;
-    }
-        pop(root);
-        emptyIndex-=2;
+            if (!strcmp(top(*root), winCondition))
+            {
+                return;
+            }
+            undoJump(root, &emptyIndex, jump);
+        }
     }
 }
 
 int main()
 {
-    struct StackNode* root = NULL;
+    struct StackNode *root = NULL;
     int frogsTeam;
 
     scanf("%d", &frogsTeam);
@@ -177,7 +151,8 @@ int main()
     push(&root, frogs);
     rec(&root, frogs, emptyIndex, winCondition);
 
-    while(top(root) != NULL) {
+    while (top(root) != NULL)
+    {
         printf("%s\n", top(root));
         pop(&root);
     }
