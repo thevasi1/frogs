@@ -3,8 +3,8 @@
 #include <string.h>
 
 #define EMPTY_SPACE '_'
-#define LEFT_FROG '0'
-#define RIGHT_FROG '1'
+#define LEFT_FROG '>'
+#define RIGHT_FROG '<'
 
 struct StackNode
 {
@@ -64,36 +64,11 @@ char *top(struct StackNode *root)
     return root->data;
 }
 
-int canLeftJump(char *frogs, int frogIndex)
-{
-    int frontFrogIndex = frogIndex + 1;
-    char frontFrog = frogs[frontFrogIndex];
+int canJump (char *frogs, int frogIndex, int jump, char correctType) {
+    int jumpEndIndex = frogIndex + jump;
+    char jumpEnd = frogs[jumpEndIndex];
 
-    return frogs[frogIndex] == LEFT_FROG && frontFrog == EMPTY_SPACE;
-}
-
-int canRightJump(char *frogs, int frogIndex)
-{
-    int behindFrogIndex = frogIndex - 1;
-    char behindFrog = frogs[behindFrogIndex];
-
-    return frogs[frogIndex] == RIGHT_FROG && behindFrog == EMPTY_SPACE;
-}
-
-int canLeftDoubleJump(char *frogs, int frogIndex)
-{
-    int frontFrogIndex = frogIndex + 2;
-    char frontFrog = frogs[frontFrogIndex];
-
-    return frogs[frogIndex] == LEFT_FROG && frontFrog == EMPTY_SPACE;
-}
-
-int canRightDoubleJump(char *frogs, int frogIndex)
-{
-    int behindFrogIndex = frogIndex - 2;
-    char behindFrog = frogs[behindFrogIndex];
-
-    return frogs[frogIndex] == RIGHT_FROG && behindFrog == EMPTY_SPACE;
+    return frogs[frogIndex] == correctType && jumpEnd == EMPTY_SPACE;
 }
 
 void swap(char *a, char *b)
@@ -115,7 +90,7 @@ void rec(struct StackNode** root, char *frogs, int emptyIndex, char *winConditio
         return;
     }
 
-    if(canLeftJump(top(*root), emptyIndex - 1))
+    if(canJump(top(*root), emptyIndex - 1, 1, LEFT_FROG))
     {
         strcpy(frogs, top(*root));
         doJump(frogs, emptyIndex - 1, &emptyIndex);
@@ -129,7 +104,7 @@ void rec(struct StackNode** root, char *frogs, int emptyIndex, char *winConditio
         pop(root);
         ++emptyIndex;
     }
-    if(canRightJump(top(*root), emptyIndex + 1))
+    if(canJump(top(*root), emptyIndex + 1, -1, RIGHT_FROG))
     {
         strcpy(frogs, top(*root));
         doJump(frogs, emptyIndex + 1, &emptyIndex);
@@ -142,7 +117,7 @@ void rec(struct StackNode** root, char *frogs, int emptyIndex, char *winConditio
         pop(root);
         --emptyIndex;
     }
-    if(canLeftDoubleJump(top(*root), emptyIndex - 2))
+    if(canJump(top(*root), emptyIndex - 2, 2, LEFT_FROG))
     {
         strcpy(frogs, top(*root));
         doJump(frogs, emptyIndex - 2, &emptyIndex);
@@ -155,7 +130,7 @@ void rec(struct StackNode** root, char *frogs, int emptyIndex, char *winConditio
         pop(root);
         emptyIndex+=2;
     }
-    if(canRightDoubleJump(top(*root), emptyIndex + 2))
+    if(canJump(top(*root), emptyIndex + 2, -2, RIGHT_FROG))
     {
         strcpy(frogs, top(*root));
         doJump(frogs, emptyIndex + 2, &emptyIndex);
